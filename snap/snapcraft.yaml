@@ -1,8 +1,5 @@
 name: anki-woodrow
 base: core18
-version: '2.1.14+master'
-version-script: |
-  echo $SNAPCRAFT_PROJECT_VERSION-commit.$(git rev-parse --short HEAD)
 summary: Anki is a friendly, intelligent spaced learning system.
 description: |
   Anki is a program which makes remembering things easy. Because it's a lot
@@ -14,6 +11,7 @@ confinement: strict
 architectures:
   - build-on: amd64
     run-on: [amd64]
+adopt-info: anki
 
 layout:
   /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib:
@@ -42,6 +40,7 @@ apps:
       - opengl
       - unity7
     environment:
+      DISABLE_WAYLAND: 1
       LC_ALL: C.UTF-8
       LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu/samba/
       QTWEBENGINEPROCESS_PATH: $SNAP/usr/lib/x86_64-linux-gnu/qt5/libexec/QtWebEngineProcess
@@ -114,6 +113,12 @@ parts:
       - portaudio19-dev
       - bzr
       - gettext
+    override-pull: |
+      snapcraftctl pull
+      VERSION=2.1.15+snap
+      VERSION=$VERSION-$(git rev-parse --short HEAD)
+      echo "$VERSION"
+      snapcraftctl set-version "$VERSION"
     override-build: |
       snapcraftctl build
       ./tools/build_ui.sh
