@@ -153,6 +153,9 @@ parts:
       - libslang2
       - samba-libs
       - execstack
+      - texlive-latex-extra
+      - dvipng
+      - libpng-dev
     override-prime: |
       snapcraftctl prime
 
