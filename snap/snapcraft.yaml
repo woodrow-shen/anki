@@ -37,6 +37,8 @@ apps:
       - home
       - browser-support
       - pulseaudio
+      - audio-playback
+      - audio-record
       - opengl
       - unity7
     environment:
