@@ -117,7 +117,7 @@ parts:
       - gettext
     override-pull: |
       snapcraftctl pull
-      VERSION=2.1.15+snap
+      VERSION=$(grep "version=" setup.py | grep -oP "[^']*[^']" | sed -n '2p')
       VERSION=$VERSION-$(git rev-parse --short HEAD)
       echo "$VERSION"
       snapcraftctl set-version "$VERSION"
