@@ -186,8 +186,8 @@ av_player = AVPlayer()
 def _packagedCmd(cmd: List[str]) -> Tuple[Any, Dict[str, str]]:
     cmd = cmd[:]
     env = os.environ.copy()
-    if "LD_LIBRARY_PATH" in env:
-        del env["LD_LIBRARY_PATH"]
+    #if "LD_LIBRARY_PATH" in env:
+    #    del env["LD_LIBRARY_PATH"]
     if isMac:
         dir = os.path.dirname(os.path.abspath(__file__))
         exeDir = os.path.abspath(dir + "/../../Resources/audio")
