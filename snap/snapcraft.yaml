@@ -6,7 +6,7 @@ description: |
   more efficient than traditional study methods, you can either greatly
   decrease your time spent studying, or greatly increase the amount you learn.
 
-grade: stable
+grade: devel
 confinement: strict
 architectures:
   - build-on: amd64
@@ -44,8 +44,9 @@ apps:
     environment:
       DISABLE_WAYLAND: 1
       LC_ALL: C.UTF-8
-      #LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu/samba/
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu/samba
       QTWEBENGINEPROCESS_PATH: $SNAP/usr/lib/x86_64-linux-gnu/qt5/libexec/QtWebEngineProcess
+      PYTHONPATH: $SNAP/lib/python3.8/site-packages
 
 parts:
   # Remote part for support of various desktop technologies
@@ -132,7 +133,7 @@ parts:
       tar xJvf node-v12.18.3-linux-x64.tar.xz --strip-components 1 -C $SNAPCRAFT_PART_INSTALL
 
   anki:
-    plugin: python
+    plugin: nil
     build-environment:
       - PART_RUST: $SNAPCRAFT_PROJECT_DIR/parts/rust/install
       - PART_PROTOC: $SNAPCRAFT_PROJECT_DIR/parts/protoc/install
@@ -163,19 +164,15 @@ parts:
       make build
     stage-packages:
       - python3
-      - python3-pyqt5
-      - python3-pyqt5.qtwebengine
-      - libportaudio2
-      - libgtk-3-0
-      - libglu1-mesa
-      - libxtst6
-      - libnss3
-      - libnspr4
+      - rsync
+      - gettext
       - mpv
       - lame
-      - locales
-      - libc-bin
-      - execstack
+      - libportaudio2
+      - libglu1-mesa
+      - libnss3
+      - libxtst6
+      - libgtk-3-0
       - libxcb-icccm4
       - libxcb-image0
       - libxcb-keysyms1
@@ -185,7 +182,8 @@ parts:
       - libxcb-xkb1
       - libxkbcommon-x11-0
       - libxcomposite1
-        #- samba-libs
+      - samba-libs
+        #- libc-bin
         #- libcairo-gobject2
         #- libepoxy0
         #- libatspi2.0-0
@@ -193,15 +191,27 @@ parts:
         #- libatk-bridge2.0-0
         #- libbluray2
         #- libslang2
+        #- locales
+        #- libnspr4
+        #- python3-pyqt5
+        #- python3-pyqt5.qtwebengine
     override-prime: |
       snapcraftctl prime
 
-      pip3 install --no-cache-dir PyQtWebEngine==5.12.1 PyQt5==5.12.1 $SNAPCRAFT_PROJECT_DIR/parts/anki/build/dist/*.whl -t $SNAPCRAFT_PRIME/lib/python3.8/site-packages
+      pip3 install --no-cache-dir PyQtWebEngine==5.12.1 PyQt5==5.12.1 pyaudio $SNAPCRAFT_PROJECT_DIR/parts/anki/build/dist/*.whl -t $SNAPCRAFT_PRIME/lib/python3.8/site-packages
 
-      printf "#!/usr/bin/env python\nimport aqt\naqt.run()\n" > bin/anki
+      # workaround
+      rm -rf usr/lib/x86_64-linux-gnu/qt5 usr/lib/x86_64-linux-gnu/qt-default
+      rm -rf usr/lib/x86_64-linux-gnu/libQt5*
+      cp -rf lib/python3.8/site-packages/PyQt5/Qt/lib/* usr/lib/x86_64-linux-gnu
+      mkdir -p usr/lib/x86_64-linux-gnu/qt5/libexec
+      cp -rf lib/python3.8/site-packages/PyQt5/Qt/libexec/QtWebEngineProcess usr/lib/x86_64-linux-gnu/qt5/libexec
+      cp -rf lib/python3.8/site-packages/PyQt5/Qt/resources/* usr/lib/x86_64-linux-gnu/qt5/libexec
+      cp -rf lib/python3.8/site-packages/PyQt5/Qt/translations/qtwebengine_locales usr/lib/x86_64-linux-gnu/qt5/libexec/qtwebengine_locales
+
+      printf "#!/usr/bin/env python3\nimport aqt\naqt.run()\n" > bin/anki
       chmod +x bin/anki
 
-      execstack --clear-execstack usr/lib/x86_64-linux-gnu/libQt5WebEngineCore.so.5.12.8
       cp $SNAPCRAFT_PROJECT_DIR/qt/anki.desktop .
-      cp $SNAPCRAFT_PROJECT_DIR/qt/designer/icons/anki.png .
+      cp $SNAPCRAFT_PROJECT_DIR/qt/anki.png .
       sed -i -E 's|Icon=anki|Icon=anki.png|' anki.desktop
